@@ -16,7 +16,7 @@ function App() {
         <ContentArea>
           <Routes>
             <Route path='/types/:name' element={<TypeView />} />
-            
+
           </Routes>
         </ContentArea>
       </div>

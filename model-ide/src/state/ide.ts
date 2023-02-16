@@ -1,7 +1,6 @@
 import { Reducer } from "redux"
-import { EditHistory, getHistoryInitState, redo, undo, update } from "./editHistory"
-import { applyChange, DocumentAction, Model } from "./document"
-
+import { EditHistory, getHistoryInitState, historyRedo, historyUndo, historyUpdate } from "./editHistory"
+import { applyChange, DocumentAction, getDocumentInitState, Model } from "./document"
 
 
 export type UndoAction = {
@@ -19,10 +18,9 @@ export type IdeState = {
 }
 
 const initState: IdeState = {
-    history: getHistoryInitState({
-        types: {},
-        relations: []
-    })
+    history: getHistoryInitState(
+        getDocumentInitState()
+    )
 }
 
 export const ideReducer: Reducer<IdeState, IdeAction> = (state = initState, action) => {
@@ -30,13 +28,13 @@ export const ideReducer: Reducer<IdeState, IdeAction> = (state = initState, acti
     if (action.type === 'UNDO') {
         return {
             ...state, 
-            history: undo(state.history)
+            history: historyUndo(state.history)
         }
     }
     else if (action.type === 'REDO') {
         return {
             ...state, 
-            history: redo(state.history)
+            history: historyRedo(state.history)
         }
     }
     else {
@@ -46,7 +44,7 @@ export const ideReducer: Reducer<IdeState, IdeAction> = (state = initState, acti
         if (updatedState !== oldState) {
             return {
                 ...state, 
-                history: update(state.history, updatedState)
+                history: historyUpdate(state.history, updatedState)
             }
         }
     }

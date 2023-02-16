@@ -67,10 +67,6 @@ export type Relation = {
     right: RelationEnd
 }
 
-// export type NamedDataType<T extends keyof Types = keyof Types> = {
-//     name: string
-// } & DataType<T>
-
 export type Model = {
     types: Record<string, DataType>
     relations: Relation[]
@@ -84,6 +80,7 @@ export type AddTypeAction = {
 
 export type UpdateTypeAction = {
     type: "UPDATE-TYPE"
+    name: string
     data: Partial<DataType>
 }
 
@@ -95,7 +92,7 @@ export type RenameTypeAction = {
 
 export type RemoveTypeAction = {
     type: "REMOVE-TYPE"
-    data: string
+    name: string
 }
 
 export type AddRelationAction = {
@@ -105,6 +102,10 @@ export type AddRelationAction = {
 
 export type UpdateRelationAction = {
     type: "UPDATE-RELATION"
+    leftProperty: string
+    rightProperty: string
+    leftType: string
+    rightType: string
     data: Partial<Relation>
 }
 
@@ -117,8 +118,85 @@ export type RemoveRelationAction = {
 }
 
 export type DocumentAction = AddTypeAction | UpdateTypeAction | RemoveTypeAction | AddRelationAction |
-UpdateRelationAction | RemoveRelationAction
+UpdateRelationAction | RemoveRelationAction | RenameTypeAction
 
-export const applyChange = (document: Model, action: DocumentAction): Model => {
-    return document;
+export const getDocumentInitState = () => ({
+    types: {},
+    relations: []
+})
+
+type RelationKey = {
+    leftProperty: string
+    rightProperty: string
+    leftType: string
+    rightType: string
+}
+
+const isTheSameRelation = (r: Relation, key: RelationKey) => (
+    r.left.property === key.leftProperty &&
+    r.left.typeName === key.leftType &&
+    r.right.property === key.rightProperty &&
+    r.right.typeName === key.rightType
+);
+
+export const applyChange = (state: Model, action: DocumentAction): Model => {
+
+    if (action.type === 'ADD-TYPE') {
+        return {
+            ...state,
+            types: {
+                ...state.types,
+                [action.name]: action.data
+            }
+        }
+    }
+    else if (action.type === 'ADD-RELATION') {
+        return {
+            ...state,
+            relations: [
+                ...state.relations,
+                action.data
+            ]
+        }
+    }
+    else if (action.type === 'UPDATE-TYPE') {
+        const oldData = state.types[action.name];
+        return {
+            ...state,
+            types: {
+                ...state.types,
+                [action.name]: {
+                    ...oldData,
+                    ...action.data
+                }
+            }
+        }
+    }
+    else if (action.type === 'UPDATE-RELATION') {
+        return {
+            ...state,
+            relations: state.relations.map(r => 
+                isTheSameRelation(r, action)
+                ? {
+                    ...r,
+                    ...action.data
+                }
+                : r)
+        }
+    }
+    else if (action.type === 'REMOVE-TYPE') {
+        const { [action.name]: _, ...types } = state.types;
+        return {
+            ...state,
+            types
+        }
+    }
+    else if (action.type === 'REMOVE-RELATION') {
+        return {
+            ...state,
+            relations: state.relations.filter(r => !isTheSameRelation(r, action))
+        }
+    }
+
+    return state;
 }
