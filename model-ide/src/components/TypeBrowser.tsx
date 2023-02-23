@@ -1,14 +1,59 @@
+import { AnyType, Named, ObjectType } from "../state/document"
+import { useModelTypes } from "../state/ide"
 import { Panel } from "./controls/Panel"
 import { PanelFolder } from "./controls/PanelFolder"
 import { PanelItem } from "./controls/PanelItem"
 
+
+type AnyTypeProps = Named<AnyType>
+
+// function ObjectTypeItem(props: Named<ObjectType>) {
+    
+//     return (
+//         <PanelFolder caption={props.name} name={props.name} toggled>
+//             {
+//                 props.properties.keys
+//                     .map(k => props.properties.byKey[k])
+//                     .map(p => <AnyTypeItem {...p} />)
+//             }
+//         </PanelFolder>
+//     )
+// }
+
+function ScalarTypeItem(props: AnyTypeProps) {
+
+    return <PanelItem caption={props.name} name={props.name} href={`/types/${props.name}`} />
+}
+
+function AnyTypeItem({ name, ...props }: AnyTypeProps) {
+    
+    return <ScalarTypeItem name={name} {...props} />
+    // if (props.kind === 'object') {
+    //     return <ObjectTypeItem name={name} {...props} />
+    // }
+    // else {
+    //     return <ScalarTypeItem name={name} {...props} />
+    // }
+}
+
 export const TypeBrowser = () => {
 
+    const types = useModelTypes();
+
     return (
-        
-        <Panel caption="Types">
-            <PanelItem caption="Dashboard" name="dashboard" />
-            <PanelFolder caption="Panel Folder" name="folder1" toggled>
+        <Panel>
+            {
+                types.map(type => (
+                    <AnyTypeItem key={type.name} {...type} />
+                ))
+            }
+            
+        </Panel>
+
+    )
+}
+
+{/* <PanelFolder caption="Panel Folder" name="folder1" toggled>
                 <PanelItem caption="Item 1" name="item1" />
                 <PanelItem caption="Item 2" name="item2" />
             </PanelFolder>
@@ -56,7 +101,4 @@ export const TypeBrowser = () => {
                         <span className="flex-1 ml-3 whitespace-nowrap">Sign Up</span>
                     </a>
                 </li>
-        </Panel>
-
-    )
-}
+  */}

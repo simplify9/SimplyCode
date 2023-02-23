@@ -1,6 +1,7 @@
 import { Reducer } from "redux"
 import { EditHistory, getHistoryInitState, historyRedo, historyUndo, historyUpdate } from "./editHistory"
-import { applyChange, DocumentAction, getDocumentInitState, Model } from "./document"
+import { applyChange, DocumentAction, getDocumentInitState, Document } from "./document"
+import { useSelector } from "react-redux"
 
 
 export type UndoAction = {
@@ -14,7 +15,7 @@ export type RedoAction = {
 type IdeAction = DocumentAction | UndoAction | RedoAction
 
 export type IdeState = {
-    history: EditHistory<Model>
+    history: EditHistory<Document>
 }
 
 const initState: IdeState = {
@@ -50,4 +51,14 @@ export const ideReducer: Reducer<IdeState, IdeAction> = (state = initState, acti
     }
 
     return state;
+}
+
+export const useModelTypes = () => {
+
+    const types = useSelector((s: IdeState) => s.history.present.types);
+
+    return types.keys.map(k => ({
+        name: k,
+        ...types.byKey[k]
+    }))
 }

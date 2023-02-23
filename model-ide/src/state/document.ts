@@ -1,60 +1,78 @@
-export interface CustomArgs {
-    type: string
+import { applyAdd, applyRemove, applyUpdate, EntitySet, entitySet } from "./entitySet"
+
+export type Named<T> = {
+    name: string
+} & T
+
+export interface ExtenderType {
+    kind: 'extender'
+    fromType: string
 }
 
-export interface NumberArgs {
+export interface NumberType {
+    kind: 'number'
     precision?: number
     min?: number
     max?: number
 }
 
-export interface TextArgs {
+export interface TextType {
+    kind: 'text'
     regex?: string
     minLength?: number
     maxLength?: number
 }
 
-export interface BooleanArgs {
-
+export interface BooleanType {
+    kind: 'boolean'
 }
 
-export type Property<T> = {
-    required: boolean
-} & T
-
-export interface ObjectArgs {
-    properties: Record<string, Property<DataType>>
+export interface DateType {
+    kind: 'date'
+    min?: string
+    max?: string
 }
 
-export interface DateArgs {
-
+export interface DateTimeType {
+    kind: 'datetime'
+    min?: string
+    max?: string
 }
 
-export interface DateTimeArgs {
-
+export interface TimespanType {
+    kind: 'timespan'
+    min?: string
+    max?: string
 }
 
-export interface TimeArgs {
-
+export type Property<T> = T & {
+    isList?: boolean
+    required?: boolean
 }
 
-export interface TimeSpanArgs {
-
+export interface ObjectType {
+    kind: 'object'
+    isEntity: boolean
+    properties: EntitySet<Named<Property<AnyType>>>
+    includes: string[]
 }
 
-export type Types = {
-    number: NumberArgs
-    text: TextArgs
-    boolean: BooleanArgs
-    object: ObjectArgs
-    date: DateArgs
-    dateTime: DateTimeArgs
-    time: TimeArgs
-    timeSpan: TimeSpanArgs
-    custom: CustomArgs
+export interface GeoPointType {
+    kind: 'geopoint'
 }
 
-export type DataType<T extends keyof Types = keyof Types> = { base: T } & Types[T]
+export type AnyType = (
+    ExtenderType |
+    NumberType |
+    TextType |
+    BooleanType |
+    DateType |
+    DateTimeType |
+    TimespanType |
+    ObjectType |
+    GeoPointType) & {
+        description?: string
+    }
 
 export type RelationEnd = {
     typeName: string
@@ -67,21 +85,27 @@ export type Relation = {
     right: RelationEnd
 }
 
-export type Model = {
-    types: Record<string, DataType>
-    relations: Relation[]
+export type Document = {
+    types: EntitySet<AnyType>
+    relations: EntitySet<Relation>
 }
 
 export type AddTypeAction = {
     type: "ADD-TYPE"
     name: string
-    data: DataType
+    data: AnyType
 }
+
+export const addTypeAction = (name: string, data: AnyType): AddTypeAction => ({
+    type: 'ADD-TYPE',
+    name, 
+    data
+})
 
 export type UpdateTypeAction = {
     type: "UPDATE-TYPE"
     name: string
-    data: Partial<DataType>
+    data: Partial<AnyType>
 }
 
 export type RenameTypeAction = {
@@ -97,104 +121,66 @@ export type RemoveTypeAction = {
 
 export type AddRelationAction = {
     type: "ADD-RELATION"
+    name: string
     data: Relation
 }
 
 export type UpdateRelationAction = {
     type: "UPDATE-RELATION"
-    leftProperty: string
-    rightProperty: string
-    leftType: string
-    rightType: string
+    name: string
     data: Partial<Relation>
 }
 
 export type RemoveRelationAction = {
     type: "REMOVE-RELATION"
-    leftProperty: string
-    rightProperty: string
-    leftType: string
-    rightType: string
+    name: string
 }
 
 export type DocumentAction = AddTypeAction | UpdateTypeAction | RemoveTypeAction | AddRelationAction |
 UpdateRelationAction | RemoveRelationAction | RenameTypeAction
 
 export const getDocumentInitState = () => ({
-    types: {},
-    relations: []
+    types: entitySet([], []),
+    relations: entitySet([], []),
 })
 
-type RelationKey = {
-    leftProperty: string
-    rightProperty: string
-    leftType: string
-    rightType: string
-}
-
-const isTheSameRelation = (r: Relation, key: RelationKey) => (
-    r.left.property === key.leftProperty &&
-    r.left.typeName === key.leftType &&
-    r.right.property === key.rightProperty &&
-    r.right.typeName === key.rightType
-);
-
-export const applyChange = (state: Model, action: DocumentAction): Model => {
+export const applyChange = (state: Document, action: DocumentAction): Document => {
 
     if (action.type === 'ADD-TYPE') {
         return {
             ...state,
-            types: {
-                ...state.types,
-                [action.name]: action.data
-            }
+            types: applyAdd(state.types, action.name, action.data)
         }
     }
     else if (action.type === 'ADD-RELATION') {
         return {
             ...state,
-            relations: [
-                ...state.relations,
-                action.data
-            ]
+            relations: applyAdd(state.relations, action.name, action.data)
         }
     }
     else if (action.type === 'UPDATE-TYPE') {
-        const oldData = state.types[action.name];
+        const oldData = state.types.byKey[action.name];
         return {
             ...state,
-            types: {
-                ...state.types,
-                [action.name]: {
-                    ...oldData,
-                    ...action.data
-                }
-            }
+            types: applyUpdate(state.types, action.name, action.data)
         }
     }
     else if (action.type === 'UPDATE-RELATION') {
         return {
             ...state,
-            relations: state.relations.map(r => 
-                isTheSameRelation(r, action)
-                ? {
-                    ...r,
-                    ...action.data
-                }
-                : r)
+            relations: applyUpdate(state.relations, action.name, action.data)
         }
     }
     else if (action.type === 'REMOVE-TYPE') {
-        const { [action.name]: _, ...types } = state.types;
         return {
             ...state,
-            types
+            types: applyRemove(state.types, action.name)
         }
     }
     else if (action.type === 'REMOVE-RELATION') {
         return {
             ...state,
-            relations: state.relations.filter(r => !isTheSameRelation(r, action))
+            relations: applyRemove(state.relations, action.name)
         }
     }
 
