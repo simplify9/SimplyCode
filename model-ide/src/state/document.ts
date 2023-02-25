@@ -48,6 +48,7 @@ export interface TimespanType {
 export type Property<T> = T & {
     isList?: boolean
     required?: boolean
+    description?: string
 }
 
 export interface ObjectType {
@@ -119,6 +120,20 @@ export type RemoveTypeAction = {
     name: string
 }
 
+export type AddPropertyAction = {
+    type: "ADD-PROPERTY" 
+    typeName: string
+    name: string
+    data: Property<AnyType>
+}
+
+export const addPropertyAction = (typeName: string, name: string, data: Property<AnyType>): AddPropertyAction => ({
+    type: 'ADD-PROPERTY',
+    typeName,
+    name, 
+    data
+})
+
 export type AddRelationAction = {
     type: "ADD-RELATION"
     name: string
@@ -137,7 +152,7 @@ export type RemoveRelationAction = {
 }
 
 export type DocumentAction = AddTypeAction | UpdateTypeAction | RemoveTypeAction | AddRelationAction |
-UpdateRelationAction | RemoveRelationAction | RenameTypeAction
+UpdateRelationAction | RemoveRelationAction | RenameTypeAction | AddPropertyAction
 
 export const getDocumentInitState = () => ({
     types: entitySet([], []),
@@ -157,6 +172,26 @@ export const applyChange = (state: Document, action: DocumentAction): Document =
             ...state,
             relations: applyAdd(state.relations, action.name, action.data)
         }
+    }
+    else if (action.type === 'ADD-PROPERTY') {
+
+        const objectDef = state.types.byKey[action.typeName];
+        if (objectDef && objectDef.kind === 'object') {
+            return {
+                ...state,
+                types: applyUpdate(state.types, action.typeName, {
+                    ...objectDef,
+                    properties: applyAdd(objectDef.properties, 
+                        action.name, 
+                        { 
+                            name: action.name, 
+                            ...action.data
+                        })
+                })
+            }
+        }
+
+        
     }
     else if (action.type === 'UPDATE-TYPE') {
         const oldData = state.types.byKey[action.name];
@@ -185,4 +220,25 @@ export const applyChange = (state: Document, action: DocumentAction): Document =
     }
 
     return state;
+}
+
+const names = {
+    number: 'Number',
+    text: 'Text',
+    date: 'Date',
+    time: 'Time',
+    datetime: 'Date and Time',
+    boolean: 'Boolean',
+    geopoint: 'Geo-Point',
+    object: 'Object',
+    timespan: 'Time Interval'
+}
+
+export const humanFriendlyTypeName = (type: AnyType) => {
+
+    if (type.kind === 'extender') {
+        return type.fromType;
+    }
+
+    return names[type.kind];
 }

@@ -1,12 +1,15 @@
+import { classes } from "./utils"
+
 interface Props {
+    className?: string
     caption: string
     children?: React.ReactNode
 }
 
-export const FormField = ({ caption, children }: Props) => {
+export const FormField = ({ caption, children, className }: Props) => {
 
     return (
-        <label className="w-full flex flex-col space-y-1">
+        <label className={classes("flex flex-col space-y-1 items-stretch", className)}>
             <div>{caption}</div>
             {children}
         </label>

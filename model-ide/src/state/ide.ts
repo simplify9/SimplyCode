@@ -62,3 +62,10 @@ export const useModelTypes = () => {
         ...types.byKey[k]
     }))
 }
+
+export const useModelTypeByName = (name: string) => {
+
+    const type = useSelector((s: IdeState) => s.history.present.types.byKey[name]);
+
+    return type;
+}

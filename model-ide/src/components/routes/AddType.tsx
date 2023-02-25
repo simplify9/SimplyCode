@@ -63,17 +63,17 @@ export const AddType = () => {
             <PageBody>
                 <Form onSubmit={handleSubmit(onSubmit)}>
                     <Row key='name'>
-                        <FormField caption="Name">
-                            <TextBox autoFocus type="text" {...register('name')} placeholder='Enter a title Case unique name' />
+                        <FormField caption="Name" className="w-full">
+                            <TextBox autoComplete="off" autoFocus type="text" {...register('name')} placeholder='Enter a title Case unique name' />
                         </FormField>
                     </Row>
                     <Row key='kind'>
-                        <FormField caption="Kind">
+                        <FormField caption="Kind" className="w-full">
                             <KindSelector {...register('kind')} />
                         </FormField>
                     </Row>
                     <Row>
-                        <Button type="submit">Add</Button>
+                        <Button type="submit" colorHint="primary">Add</Button>
                     </Row>
                 </Form>
             </PageBody>
