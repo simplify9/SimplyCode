@@ -11,7 +11,7 @@ export interface ExtenderType {
 
 export interface NumberType {
     kind: 'number'
-    precision?: number
+    precision: number
     min?: number
     max?: number
 }
@@ -46,8 +46,8 @@ export interface TimespanType {
 }
 
 export type Property<T> = T & {
-    isList?: boolean
-    required?: boolean
+    isList: boolean
+    required: boolean
     description?: string
 }
 

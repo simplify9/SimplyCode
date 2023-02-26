@@ -40,7 +40,7 @@ export const ObjectSpecs = (props: Props) => {
                 {
                     props.properties.keys
                         .map(k => props.properties.byKey[k])
-                        .map(prop => <ObjectPropertySpecs key={prop.name} {...prop} />)
+                        .map(prop => <ObjectPropertySpecs allowEdit allowDelete key={prop.name} {...prop} />)
                 }
                 {
                     isAdding &&
