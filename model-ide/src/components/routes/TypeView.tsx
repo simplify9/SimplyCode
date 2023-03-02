@@ -17,7 +17,7 @@ export const TypeView = () => {
                 <Button colorHint="danger">Delete</Button>
             </PageHeader>
             <PageBody>
-                <nav className="flex flex-row space-x-4 border-b-2">
+                <nav className="flex flex-row space-x-4 border-b-2 mb-4">
                     <NavLink to={``} className={s => s.isActive ? "font-bold text-sm tracking-wide" : "text-sm tracking-wide"} >Specifications</NavLink>
                     
                 </nav>

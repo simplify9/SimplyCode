@@ -29,7 +29,7 @@ export const KindSelector = React.forwardRef<HTMLSelectElement, Props>((props, r
                 <optgroup label="From Model">
                     {
                         userTypes.map(t => (
-                            <option key={t.name} value={`ext:${t.name}`}>{t.name}</option>
+                            <option key={t.name} value={`extender:${t.name}`}>{t.name}</option>
                         ))
                     }
                 </optgroup>

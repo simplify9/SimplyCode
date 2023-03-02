@@ -7,6 +7,7 @@ export type Named<T> = {
 export interface ExtenderType {
     kind: 'extender'
     fromType: string
+    description: string | null
 }
 
 export interface NumberType {
@@ -14,6 +15,7 @@ export interface NumberType {
     precision: number
     min?: number
     max?: number
+    description: string | null
 }
 
 export interface TextType {
@@ -21,34 +23,39 @@ export interface TextType {
     regex?: string
     minLength?: number
     maxLength?: number
+    description: string | null
 }
 
 export interface BooleanType {
     kind: 'boolean'
+    description: string | null
 }
 
 export interface DateType {
     kind: 'date'
     min?: string
     max?: string
+    description: string | null
 }
 
 export interface DateTimeType {
     kind: 'datetime'
     min?: string
     max?: string
+    description: string | null
 }
 
 export interface TimespanType {
     kind: 'timespan'
     min?: string
     max?: string
+    description: string | null
 }
 
 export type Property<T> = T & {
     isList: boolean
     required: boolean
-    description?: string
+    description: string | null
 }
 
 export interface ObjectType {
@@ -56,10 +63,12 @@ export interface ObjectType {
     isEntity: boolean
     properties: EntitySet<Named<Property<AnyType>>>
     includes: string[]
+    description: string | null
 }
 
 export interface GeoPointType {
     kind: 'geopoint'
+    description: string | null
 }
 
 export type AnyType = (
@@ -71,9 +80,7 @@ export type AnyType = (
     DateTimeType |
     TimespanType |
     ObjectType |
-    GeoPointType) & {
-        description?: string
-    }
+    GeoPointType)
 
 export type RelationEnd = {
     typeName: string
@@ -103,11 +110,17 @@ export const addTypeAction = (name: string, data: AnyType): AddTypeAction => ({
     data
 })
 
-export type UpdateTypeAction = {
+export type PatchTypeAction = {
     type: "UPDATE-TYPE"
     name: string
     data: Partial<AnyType>
 }
+
+export const updateTypeAction = (name: string, data: Partial<AnyType>): PatchTypeAction => ({
+    type: 'UPDATE-TYPE',
+    name,
+    data
+})
 
 export type RenameTypeAction = {
     type: "RENAME-TYPE"
@@ -119,20 +132,6 @@ export type RemoveTypeAction = {
     type: "REMOVE-TYPE"
     name: string
 }
-
-export type AddPropertyAction = {
-    type: "ADD-PROPERTY" 
-    typeName: string
-    name: string
-    data: Property<AnyType>
-}
-
-export const addPropertyAction = (typeName: string, name: string, data: Property<AnyType>): AddPropertyAction => ({
-    type: 'ADD-PROPERTY',
-    typeName,
-    name, 
-    data
-})
 
 export type AddRelationAction = {
     type: "ADD-RELATION"
@@ -151,8 +150,14 @@ export type RemoveRelationAction = {
     name: string
 }
 
-export type DocumentAction = AddTypeAction | UpdateTypeAction | RemoveTypeAction | AddRelationAction |
-UpdateRelationAction | RemoveRelationAction | RenameTypeAction | AddPropertyAction
+export type DocumentAction = 
+    AddTypeAction | 
+    PatchTypeAction | 
+    RemoveTypeAction | 
+    AddRelationAction |
+    UpdateRelationAction | 
+    RemoveRelationAction | 
+    RenameTypeAction
 
 export const getDocumentInitState = () => ({
     types: entitySet([], []),
@@ -173,28 +178,7 @@ export const applyChange = (state: Document, action: DocumentAction): Document =
             relations: applyAdd(state.relations, action.name, action.data)
         }
     }
-    else if (action.type === 'ADD-PROPERTY') {
-
-        const objectDef = state.types.byKey[action.typeName];
-        if (objectDef && objectDef.kind === 'object') {
-            return {
-                ...state,
-                types: applyUpdate(state.types, action.typeName, {
-                    ...objectDef,
-                    properties: applyAdd(objectDef.properties, 
-                        action.name, 
-                        { 
-                            name: action.name, 
-                            ...action.data
-                        })
-                })
-            }
-        }
-
-        
-    }
     else if (action.type === 'UPDATE-TYPE') {
-        const oldData = state.types.byKey[action.name];
         return {
             ...state,
             types: applyUpdate(state.types, action.name, action.data)
@@ -234,11 +218,39 @@ const names = {
     timespan: 'Time Interval'
 }
 
-export const humanFriendlyTypeName = (type: AnyType) => {
+export const humanFriendlyTypeName = (type: { kind: AnyType['kind'], fromType?: string }) => {
 
     if (type.kind === 'extender') {
         return type.fromType;
     }
 
     return names[type.kind];
+}
+
+export const createTypeWithDefaults = 
+    (kind: string, fromType?: string): AnyType => {
+
+    if (kind === 'extender') {
+        return {
+            kind,
+            fromType: fromType!,
+            description: null
+        }
+    }
+    else if (kind === 'object') {
+        return {
+            kind: 'object',
+            isEntity: false,
+            properties: entitySet([], []),
+            includes: [],
+            description: null
+        }
+    }
+    else {
+        return {
+            kind: kind as any,
+            description: null
+        }
+    }
+
 }

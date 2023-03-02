@@ -8,8 +8,7 @@ import { PageBody } from "../controls/PageBody"
 import { PageHeader } from "../controls/PageHeader"
 import { Row } from "../controls/Row"
 import { useDispatch } from "react-redux";
-import { addTypeAction, AnyType } from "../../state/document";
-import { entitySet } from "../../state/entitySet";
+import { addTypeAction, AnyType, createTypeWithDefaults } from "../../state/document";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../controls/Button";
 import { KindSelector } from "../KindSelector";
@@ -20,27 +19,9 @@ const schema = yup.object({
     kind: yup.string().required('you must choose data type'),
 }).required();
 
-const createType = (kind: string): AnyType => {
-    if (kind === 'object') {
-        return {
-            kind: 'object',
-            isEntity: false,
-            properties: entitySet([], []),
-            includes: []
-        }
-    }
-    else if (kind.indexOf(':') !== -1) {
-        const [_, fromType] = kind.split(':');
-        return {
-            kind: 'extender',
-            fromType
-        }
-    }
-    else {
-        return {
-            kind: kind as any,
-        }
-    }
+const createType = (kindString: string): AnyType => {
+    const [kind, fromType] = kindString.split(':')
+    return createTypeWithDefaults(kind, fromType);
 }
 
 export const AddType = () => {

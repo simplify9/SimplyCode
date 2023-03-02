@@ -9,9 +9,9 @@ interface Props {
 export const FormField = ({ caption, children, className }: Props) => {
 
     return (
-        <label className={classes("flex flex-col space-y-1 items-stretch", className)}>
-            <div>{caption}</div>
+        <div className={classes("flex flex-col space-y-1 items-stretch", className)}>
+            <div className="text-sm tracking-wide text-gray-800">{caption}</div>
             {children}
-        </label>
+        </div>
     )
 }

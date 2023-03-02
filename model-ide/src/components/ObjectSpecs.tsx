@@ -1,20 +1,23 @@
 
 import { useState } from "react";
-import { useDispatch } from "react-redux";
-import { addPropertyAction, AnyType, Named, ObjectType, Property } from "../state/document";
+import { AnyType, Named, ObjectType, Property } from "../state/document";
+import { applyAdd, applyRemove } from "../state/entitySet";
 import { AddNewProperty } from "./AddNewProperty";
 import { Button } from "./controls/Button";
+import { ListEditor } from "./controls/ListEditor";
 import { SectionBody } from "./controls/SectionBody";
 import { SectionHeader } from "./controls/SectionHeader";
 import { ObjectPropertySpecs } from "./ObjectPropertySpecs";
+import { TypeEditor } from "./utils";
 
-interface Props extends Named<ObjectType> {
+const noOp = () => { }
+
+interface Props extends TypeEditor<ObjectType> {
 
 }
 
-export const ObjectSpecs = (props: Props) => {
+export const ObjectSpecs = ({ onChange = noOp, properties }: Props) => {
 
-    const dispatch = useDispatch();
     const [isAdding, setAdding] = useState<boolean>(false);
 
     const handleAddNewClicked = () => {
@@ -22,7 +25,8 @@ export const ObjectSpecs = (props: Props) => {
     }
 
     const handleAdd = ({ name, ...data }: Named<Property<AnyType>>) => {
-        dispatch(addPropertyAction(props.name, name, data));
+        const newProps = applyAdd(properties, name, { name, ...data });
+        onChange({ properties: newProps });
         setAdding(false);
     }
 
@@ -30,24 +34,34 @@ export const ObjectSpecs = (props: Props) => {
         setAdding(false);
     }
 
-    return (
-        <div className="w-full flex flex-col items-stretch px-4 py-2">
+    const handleDelete = (name: string) => {
+        const newProps = applyRemove(properties, name);
+        onChange({ properties: newProps });
+    }
 
-            <SectionHeader title="Properties">
-                <Button onClick={handleAddNewClicked}>Add New Property</Button>
-            </SectionHeader>
-            <SectionBody>
+    return (
+        
+
+        <ListEditor propertyTitle="Properties" onAdd={handleAddNewClicked} isAdding={isAdding}>
+
                 {
-                    props.properties.keys
-                        .map(k => props.properties.byKey[k])
-                        .map(prop => <ObjectPropertySpecs allowEdit allowDelete key={prop.name} {...prop} />)
+                    properties.keys
+                        .map(k => properties.byKey[k])
+                        .map(prop => (
+                            <ObjectPropertySpecs 
+                                allowEdit 
+                                allowDelete 
+                                key={prop.name} 
+                                onDelete={handleDelete}
+                                {...prop} />
+                        ))
                 }
                 {
                     isAdding &&
                     <AddNewProperty onAdd={handleAdd} onCancel={handleCancelAdd} />
                 }
-            </SectionBody>
 
-        </div>
+        </ListEditor>
+
     )
 }

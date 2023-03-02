@@ -13,12 +13,12 @@ const classesPerHint = {
     danger: 'text-white bg-red-700 hover:bg-red-800 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800'
 }
 
-export const Button = ({ colorHint = "normal", ...props }: Props) => {
+export const Button = ({ className, colorHint = "normal", ...props }: Props) => {
 
     return (
         <button
             type='button'
-            className={classes("focus:ring-4 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none", classesPerHint[colorHint])}
+            className={classes("focus:ring-4 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none", classesPerHint[colorHint], className)}
             {...props} />
     )
 }
