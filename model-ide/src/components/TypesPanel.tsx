@@ -8,19 +8,6 @@ import { PanelItem } from "./controls/PanelItem"
 
 type AnyTypeProps = Named<AnyType>
 
-// function ObjectTypeItem(props: Named<ObjectType>) {
-    
-//     return (
-//         <PanelFolder caption={props.name} name={props.name} toggled>
-//             {
-//                 props.properties.keys
-//                     .map(k => props.properties.byKey[k])
-//                     .map(p => <AnyTypeItem {...p} />)
-//             }
-//         </PanelFolder>
-//     )
-// }
-
 function ScalarTypeItem(props: AnyTypeProps) {
 
     return <PanelItem caption={props.name} name={props.name} href={`/types/${props.name}`} />
@@ -29,12 +16,6 @@ function ScalarTypeItem(props: AnyTypeProps) {
 function AnyTypeItem({ name, ...props }: AnyTypeProps) {
     
     return <ScalarTypeItem name={name} {...props} />
-    // if (props.kind === 'object') {
-    //     return <ObjectTypeItem name={name} {...props} />
-    // }
-    // else {
-    //     return <ScalarTypeItem name={name} {...props} />
-    // }
 }
 
 export const TypesPanel = () => {

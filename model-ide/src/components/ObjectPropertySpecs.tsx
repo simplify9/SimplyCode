@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { AnyType, humanFriendlyTypeName, Named, ObjectType, Property } from "../state/document";
 import { useModelTypeByName } from "../state/ide";
-import { Button } from "./controls/Button";
 import { icons } from "./controls/icons";
 import { Modal, ModalButton } from "./controls/Modal";
 
 
 const ReferencedObject = (props: Named<ObjectType>) => {
     return (
-        <div className="pl-8">
+        <div className="pl-8 space-y-4">
             {
                 props.properties.keys
                     .map(k => props.properties.byKey[k])
@@ -63,7 +62,7 @@ export const ObjectPropertySpecs = (props: Props) => {
                 
                 <div className="flex flex-col space-y-1">
                     <div className={props.leaf ? "": "font-bold"}>{props.name}</div>
-                    <span className="bg-gray-100 text-gray-800 text-sm font-light mr-2 px-2.5 py-0.5 rounded ">
+                    <span className="bg-gray-100 text-gray-800 font-light mr-2 px-2.5 py-0.5 rounded text-xs">
                         {`${props.isList ? 'List of ': ''}${humanFriendlyTypeName(props)}`}
                     </span>
                 </div>
